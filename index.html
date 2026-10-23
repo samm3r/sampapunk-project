@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SampaPunk — São Paulo 2099</title>
+  <meta name="description" content="SampaPunk: a cyberpunk courier runner through a dystopian São Paulo, 2099.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#070a1a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap">
+  <link rel="preload" href="fonts/paladins.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preload" href="audio/soundtrack.mp3" as="fetch" type="audio/mpeg" crossorigin>
+</head>
+<body class="no-scan">
+  <div id="rotate-hint" data-i18n="rotate">ROTATE FOR A WIDER VIEW</div>
+  <div id="app">
+    <div id="stage">
+      <canvas id="game" width="480" height="270" aria-label="SampaPunk game screen" data-i18n-aria="canvas"></canvas>
+      <div id="fx-damage"></div>
+      <div id="fx-vignette"></div>
+      <div id="fx-scan"></div>
+
+      <!-- ===================== HUD ===================== -->
+      <div id="hud" class="hidden" aria-hidden="true">
+        <div class="hud-left">
+          <div class="hud-box hb-left"><i class="hb-ticks"></i>
+            <div class="meter">
+              <span class="tile t-int"><svg class="hi" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13"/><path d="M8 4.5v7M4.5 8h7"/></svg></span>
+              <span class="lbl" data-i18n="hud.integrity">INTEGRITY</span>
+              <div class="bar bar-int"><b id="hud-int"></b></div>
+              <span class="val mono" id="hud-int-val">100</span>
+            </div>
+            <div class="meter">
+              <span class="tile t-boost"><svg class="hi" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.6 1L3 9.2h4.6L6.2 15l6.8-8.6H8.6z" fill="currentColor" stroke="none"/></svg></span>
+              <span class="lbl" data-i18n="hud.boost">BOOST</span>
+              <div class="bar bar-boost"><b id="hud-boost"></b></div>
+              <span class="val mono" id="hud-boost-val">40%</span>
+            </div>
+          </div>
+          <div class="locbar" id="hud-loc">
+            <div class="loc-view" id="hud-loc-view"><div class="loc-sign" id="hud-loc-sign">LIBERDADE</div></div>
+            <span class="loc-mode" id="hud-mode-box" aria-label="movement mode"><svg class="mi mi-run" viewBox="0 0 11 10" shape-rendering="crispEdges" aria-hidden="true"><rect x="6" y="0" width="2" height="1"/><rect x="6" y="1" width="2" height="1"/><rect x="4" y="2" width="4" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="5" y="3" width="3" height="1"/><rect x="9" y="3" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="5" y="4" width="2" height="1"/><rect x="8" y="4" width="2" height="1"/><rect x="5" y="5" width="2" height="1"/><rect x="4" y="6" width="1" height="1"/><rect x="7" y="6" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="2" y="8" width="1" height="1"/><rect x="8" y="8" width="1" height="1"/><rect x="1" y="9" width="1" height="1"/><rect x="9" y="9" width="1" height="1"/></svg><svg class="mi mi-bike" viewBox="0 0 13 9" shape-rendering="crispEdges" aria-hidden="true"><rect x="10" y="0" width="1" height="1"/><rect x="4" y="1" width="2" height="1"/><rect x="10" y="1" width="1" height="1"/><rect x="4" y="2" width="2" height="1"/><rect x="9" y="2" width="2" height="1"/><rect x="3" y="3" width="4" height="1"/><rect x="8" y="3" width="3" height="1"/><rect x="1" y="4" width="9" height="1"/><rect x="1" y="5" width="2" height="1"/><rect x="6" y="5" width="3" height="1"/><rect x="10" y="5" width="2" height="1"/><rect x="0" y="6" width="1" height="1"/><rect x="3" y="6" width="1" height="1"/><rect x="9" y="6" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/><rect x="0" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="9" y="7" width="1" height="1"/><rect x="12" y="7" width="1" height="1"/><rect x="1" y="8" width="2" height="1"/><rect x="10" y="8" width="2" height="1"/></svg></span>
+          </div>
+        </div>
+        <div class="hud-center">
+          <div class="hud-box hb-center"><i class="br br-l"></i><i class="br br-r"></i><i class="hb-dot d1"></i><i class="hb-dot d2"></i>
+            <div class="alert lvl-0" id="hud-alert">
+              <span class="alert-tag mono"><span data-i18n="hud.alert">ALERT</span> <em id="hud-alert-n">1</em>/3</span>
+              <span class="alert-name" id="hud-alert-name">SURVEILLANCE</span>
+            </div>
+            <div class="heat"><b id="hud-heat"></b><i style="left:34%"></i><i style="left:67%"></i></div>
+          </div>
+        </div>
+        <div class="hud-right">
+          <div class="hud-box hb-right"><i class="hb-stripes"></i>
+            <div class="score mono" id="hud-score">000000</div>
+            <div class="stat mono"><span data-i18n="hud.dist">DIST</span> <em id="hud-dist">0000</em> / 2800 M</div>
+            <div class="stat mono"><span data-i18n="hud.chips">CHIPS</span> <em id="hud-chips">000</em></div>
+            <div class="stat mono cargo" id="hud-cargo-row"><svg class="hi si" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5l6-3 6 3v7l-6 3-6-3z" fill="#d8903a" stroke="none"/><path d="M2 5l6 3 6-3M8 8v7" stroke="#6a3c14"/></svg><span data-i18n="hud.cargo">CARGO</span> <em id="hud-cargo">0/5</em></div>
+            <div class="stat mono"><svg class="hi si si-del" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5l6-3 6 3v7l-6 3-6-3z"/><path d="M5.2 8.4l2 2 3.6-4"/></svg><span data-i18n="hud.delivered">DELIVERED</span> <em id="hud-delivered">00</em></div>
+          </div>
+        </div>
+        <div class="hud-route">
+          <div class="route-track">
+            <div class="route-fill" id="hud-route"></div>
+            <div class="route-dot" id="hud-route-dot"></div>
+          </div>
+          <div class="route-labels mono" id="hud-route-labels"></div>
+        </div>
+      </div>
+
+      <div id="toasts" aria-live="polite"></div>
+
+      <!-- ===================== TITLE ===================== -->
+      <section class="screen" id="scr-title">
+        <div class="title-wrap">
+          <div class="kicker mono">SÃO PAULO // 2099</div>
+          <h1 class="logo" data-text="SAMPAPUNK">SAMPAPUNK</h1>
+          <p class="tagline" data-i18n="title.tagline">One courier. One encrypted package. A whole city hunting you.</p>
+          <nav class="menu">
+            <button class="btn primary" data-act="new" data-primary data-i18n="btn.new">NEW RUN</button>
+            <button class="btn" data-act="howto" data-i18n="btn.howto">HOW TO PLAY</button>
+            <button class="btn" data-act="settings" data-i18n="btn.settings">SETTINGS</button>
+          </nav>
+          <div class="title-foot mono">
+            <span class="bullet"><span data-i18n="title.best">PERSONAL BEST</span> <em id="title-best">000000</em></span>
+            <span class="sep">|</span>
+            <span class="go"><span class="kb-only" data-i18n="title.enter">ENTER TO START</span><span class="touch-only" data-i18n="title.tap">TAP NEW RUN</span></span>
+          </div>
+        </div>
+        <div class="lang-switch mono" role="group" aria-label="Language / Idioma"><button class="lang-opt" data-act="lang" data-lang="en">EN</button><button class="lang-opt" data-act="lang" data-lang="pt">PT-BR</button></div>
+        <div class="version mono" id="version">v1.0</div>
+      </section>
+
+      <!-- ===================== HOW TO PLAY ===================== -->
+      <section class="screen hidden" id="scr-howto">
+        <div class="panel wide">
+          <div class="panel-head mono" data-i18n="howto.head">COURIER MANUAL // FIELD CONTROLS</div>
+          <h2 data-i18n="howto.title">HOW TO PLAY</h2>
+          <div class="howto-grid">
+            <div class="keys">
+              <div class="krow"><span class="kbd" data-i18n="key.space">SPACE</span><span class="kbd" data-i18n="key.up">UP</span><span class="kdesc" data-i18n="howto.k.jump">Jump — hold for a higher jump</span></div>
+              <div class="krow"><span class="kbd" data-i18n="key.down">DOWN</span><span class="kdesc" data-i18n="howto.k.down">Slide on foot / duck on the motorcycle. In the air: drop fast</span></div>
+              <div class="krow"><span class="kbd">SHIFT</span><span class="kdesc" data-i18n="howto.k.boost">Overdrive boost when the bar is full</span></div>
+              <div class="krow"><span class="kbd">ESC</span><span class="kbd">P</span><span class="kdesc" data-i18n="howto.k.pause">Pause / resume</span></div>
+              <div class="krow"><span class="kbd">M</span><span class="kdesc" data-i18n="howto.k.mute">Mute / unmute audio</span></div>
+              <div class="krow"><span class="kbd">ENTER</span><span class="kdesc" data-i18n="howto.k.enter">Confirm in menus</span></div>
+            </div>
+            <ul class="rules">
+              <li class="touch-only" data-i18n-html="howto.r.touch"><b class="c-cyan">Touch controls.</b> Bottom-right buttons jump (hold for higher) and slide or duck (hold). Bottom-left fires the boost. The small button above it pauses.</li>
+              <li data-i18n-html="howto.r.goal"><b class="c-cyan">Reach the drop point.</b> 2,800 m across six districts — on foot, then on a motorcycle, twice. This is the mission.</li>
+              <li data-i18n-html="howto.r.cargo"><b class="c-amber">Optional cargo.</b> Run or ride over marked boxes to stack them on your backpack (max 5). They score only when you pass a cyan <i>DROP-OFF</i> checkpoint: +100 per package. Every hit knocks one package off.</li>
+              <li data-i18n-html="howto.r.warn"><b class="c-amber">Watch for warnings.</b> Amber dashed lines mean a drone beam is coming: <i>low</i> beam: jump. <i>high</i> beam: slide or duck. A red <b>&gt;&gt;&gt;</b> on the left means a police interceptor is coming from behind — jump it.</li>
+              <li data-i18n-html="howto.r.integrity"><b class="c-red">Integrity.</b> Every hit costs integrity. At zero, ARGOS security takes the package. Grab a <b class="c-amber">pizza slice</b> (+20) or a <b class="c-amber">guaraná</b> (+10) to repair.</li>
+              <li data-i18n-html="howto.r.chips"><b class="c-cyan">Data chips</b> add score and charge your boost. A full boost gives 2.6 s of overdrive: extra speed, smash through obstacles, and jam drone attacks.</li>
+              <li data-i18n-html="howto.r.alert"><b class="c-magenta">Alert level</b> rises over time and with every hit, from SURVEILLANCE to INTERCEPTION to LOCKDOWN.</li>
+            </ul>
+          </div>
+          <div class="panel-actions">
+            <button class="btn primary" data-act="howto-continue" data-primary id="howto-continue" data-i18n="btn.continue">CONTINUE</button>
+            <button class="btn" data-act="back" id="howto-back" data-i18n="btn.back">BACK</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SETTINGS ===================== -->
+      <section class="screen hidden" id="scr-settings">
+        <div class="panel">
+          <div class="panel-head mono" data-i18n="set.head">SYSTEM // PREFERENCES</div>
+          <h2 data-i18n="set.title">SETTINGS</h2>
+          <div class="settings">
+            <button class="toggle lang" data-act="lang"><span data-i18n="set.lang">LANGUAGE · IDIOMA</span><em class="mono" data-i18n="set.langVal">ENGLISH</em></button>
+            <button class="toggle" data-set="sfx"><span data-i18n="set.sfx">SOUND EFFECTS</span><em class="mono">ON</em></button>
+            <button class="toggle" data-set="music"><span data-i18n="set.music">MUSIC</span><em class="mono">ON</em></button>
+            <button class="toggle" data-set="shake"><span data-i18n="set.shake">SCREEN SHAKE</span><em class="mono">ON</em></button>
+            <button class="toggle off" data-set="scan"><span data-i18n="set.scan">CRT SCANLINES</span><em class="mono">OFF</em></button>
+            <button class="toggle danger" data-act="reset-best"><span data-i18n="set.reset">RESET PERSONAL BEST</span><em class="mono" id="reset-best-val">—</em></button>
+          </div>
+          <div class="panel-actions">
+            <button class="btn primary" data-act="back" data-primary data-i18n="btn.back">BACK</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== BRIEFING ===================== -->
+      <section class="screen hidden" id="scr-briefing">
+        <div class="panel wide brief">
+          <div class="panel-head mono blink-dot" data-i18n="brief.head">INCOMING MESSAGE — UNKNOWN CONTACT</div>
+          <div class="msg mono" id="brief-msg"></div>
+          <div class="objective">
+            <div class="obj-row is-cyan"><svg class="obj-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5V2h3M11 2h3v3M14 11v3h-3M5 14H2v-3"/><circle cx="8" cy="8" r="2.2"/></svg><span class="lbl" data-i18n="brief.objective">OBJECTIVE</span><span class="val" data-i18n="brief.objectiveVal">Deliver the encrypted package to the final drop point. Collect and deliver additional cargo along the way to earn bonus points.</span></div>
+            <div class="obj-row is-cyan"><svg class="obj-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 15s-5-5.2-5-8.6A5 5 0 0 1 13 6.4C13 9.8 8 15 8 15z" fill="currentColor" stroke="none"/><circle cx="8" cy="6.4" r="1.8" fill="#070a1a" stroke="none"/></svg><span class="lbl" data-i18n="brief.route">ROUTE</span><span class="val" data-i18n-html="brief.routeVal">Liberdade — Paulista — Marginal Pinheiros — Centro — Minhocão — Periferia<br>2,800 m</span></div>
+            <div class="obj-row is-red"><svg class="obj-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8L15 14H1z"/><path d="M8 6v4M8 11.6v1"/></svg><span class="lbl" data-i18n="brief.threat">THREAT</span><span class="val" data-i18n="brief.threatVal">ARGOS corporate security — surveillance drones and automated police.</span></div>
+            <div class="obj-row is-amber"><svg class="obj-ico" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12"/><path d="M8 7.2v4.8"/><rect x="7.1" y="4" width="1.8" height="1.8" fill="currentColor" stroke="none"/></svg><span class="lbl" data-i18n="brief.tip">FIELD TIP</span><span class="val" data-i18n="brief.tipVal">Cargo earns points only when delivered. Watch for delivery checkpoints.</span></div>
+          </div>
+          <div class="panel-actions">
+            <button class="btn primary" data-act="start" data-primary data-i18n="btn.start">START DELIVERY</button>
+            <button class="btn" data-act="menu" data-i18n="btn.menu">MAIN MENU</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== PAUSE ===================== -->
+      <section class="screen hidden dim" id="scr-pause">
+        <div class="panel small">
+          <div class="panel-head mono" data-i18n="pause.head">SIGNAL HOLD</div>
+          <h2 data-i18n="pause.title">PAUSED</h2>
+          <div class="pause-keys mono"><span class="kb-only" data-i18n="pause.keys">SPACE/UP JUMP · DOWN SLIDE/DUCK · SHIFT BOOST · M MUTE</span><span class="touch-only" data-i18n="pause.touch">RIGHT: JUMP · SLIDE/DUCK — LEFT: BOOST</span></div>
+          <div class="panel-actions col">
+            <button class="btn primary" data-act="resume" data-primary data-i18n="btn.resume">RESUME</button>
+            <button class="btn" data-act="mute" id="pause-mute">MUTE AUDIO</button>
+            <button class="btn" data-act="menu" data-i18n="btn.quit">QUIT TO MENU</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== GAME OVER ===================== -->
+      <section class="screen hidden dim" id="scr-over">
+        <div class="panel">
+          <div class="panel-head mono c-red" data-i18n="over.head">CONNECTION LOST // COURIER 09</div>
+          <h2 class="c-red glitch" data-i18n="over.title">DELIVERY FAILED</h2>
+          <p class="context" id="over-msg"></p>
+          <div class="stats" id="over-stats"></div>
+          <div class="newbest hidden" id="over-best" data-i18n="newbest">NEW PERSONAL BEST</div>
+          <div class="panel-actions">
+            <button class="btn primary" data-act="retry" data-primary data-i18n="btn.retry">RETRY</button>
+            <button class="btn" data-act="menu" data-i18n="btn.menu">MAIN MENU</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== COMPLETE ===================== -->
+      <section class="screen hidden dim" id="scr-complete">
+        <div class="panel">
+          <div class="panel-head mono c-cyan" data-i18n="done.head">TRANSMISSION RECEIVED // DROP POINT</div>
+          <h2 class="c-cyan" data-i18n="done.title">DELIVERY COMPLETE</h2>
+          <p class="context" data-i18n="done.msg">Package delivered. The data is out of ARGOS hands — and the sun is rising over São Paulo.</p>
+          <div class="stats" id="done-stats"></div>
+          <div class="newbest hidden" id="done-best" data-i18n="newbest">NEW PERSONAL BEST</div>
+          <div class="panel-actions">
+            <button class="btn primary" data-act="retry" data-primary data-i18n="btn.new">NEW RUN</button>
+            <button class="btn" data-act="menu" data-i18n="btn.menu">MAIN MENU</button>
+          </div>
+        </div>
+      </section>
+
+      <div id="loading" class="mono" data-i18n="loading">BOOTING ARGOS-FREE NODE…</div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/gfx.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/districts.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/touch.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
